@@ -21,7 +21,7 @@ class MaintenanceRecord extends Model
     ];
 
     protected $casts = [
-        'date_reported' => 'date',
+        'date_reported' => 'string',
         'cost' => 'decimal:2',
     ];
 
