@@ -8,10 +8,13 @@ use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\DepartmentController;
 use App\Http\Controllers\Api\MaintenanceController;
 use App\Http\Controllers\Api\CategoryController;
+use App\Http\Controllers\Api\DashboardCategoriesController;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 /* Route::apiResource('assets', AssetController::class); */
 Route::post('/login', [AuthController::class, 'login']);
 Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/assets/next-number', [AssetController::class, 'nextNumber']);
     Route::apiResource('assets', AssetController::class);
 
     // View assets
@@ -33,6 +36,9 @@ Route::middleware('auth:sanctum')->group(function () {
     // Delete asset
     Route::delete('/assets/{asset}', [AssetController::class, 'destroy'])
         ->middleware('permission:assets.delete');
+
+    Route::get('/assets/{asset}/property-label', [AssetController::class, 'propertyLabel'])
+        ->middleware('permission:assets.view');
 
     Route::post('/logout', [AuthController::class, 'logout']);
 
@@ -63,9 +69,21 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::apiResource('users', UserController::class);
     Route::apiResource('maintenance', MaintenanceController::class);
-    Route::apiResource(
-        'categories',CategoryController::class
-    );
+    Route::apiResource('categories', CategoryController::class);
+    Route::get('category-counts', [DashboardCategoriesController::class, 'categoryCounts']);
+
+    Route::get('/test-qr', function () {
+        $qrCode = QrCode::format('svg')
+            ->size(500)
+            ->margin(1)
+            ->errorCorrection('H')
+            ->generate('https://example.com');
+
+        return response($qrCode)
+            ->header('Content-Type', 'image/svg+xml');
+    });
+    
+
 });
 
 Route::get('/user', function (Request $request) {

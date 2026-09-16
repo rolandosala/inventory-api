@@ -5,6 +5,9 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Asset;
 use Illuminate\Http\Request;
+use Barryvdh\DomPDF\Facade\Pdf;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
+use Illuminate\Support\Facades\File;
 
 class AssetController extends Controller
 {
@@ -126,12 +129,107 @@ class AssetController extends Controller
         ]);
     }
 
+    public function propertyLabel(Asset $asset)
+    {
+        $asset->load([
+            'category',
+            'department',
+            'location',
+            'supplier',
+        ]);
+
+        $assetUrl = url('/dashboard/assets/' . $asset->id);
+
+        $qrCode = QrCode::format('png')
+            ->size(500)
+            ->margin(1)
+            ->errorCorrection('H')
+            ->generate($assetUrl);
+
+        $qrBase64 = base64_encode($qrCode);
+
+        $qrPath = storage_path('app/public/qr-' . $asset->id . '.png');
+        file_put_contents($qrPath, $qrCode);
+        $logoPath = public_path('/slsu-logo.png');
+        $qrCodePath = public_path('/qrCode.png');
+
+        $logo = null;
+        $qrCodelogo = null;
+
+        if (File::exists($logoPath)) {
+            $logo = base64_encode(
+                File::get($logoPath)
+            );
+        }
+        if (File::exists($qrCodePath)) {
+            $qrCodelogo = base64_encode(
+                File::get($qrCodePath)
+            );
+        }
+
+
+        $pdf = Pdf::loadView('pdf.property-label', [
+            'asset' => $asset,
+            'qrCodelogo' => $qrCodelogo,
+            'logo' => $logo,
+            'qrCode' => $qrBase64,
+            'qrPath' => $qrPath
+        ]);
+
+
+        $pdf->setPaper(
+            [0, 0, 283.46, 170.08],
+            'landscape'
+        );
+
+        return $pdf->stream(
+            'property-label-' . $asset->asset_tag . '.pdf'
+        );
+    }
+    /* public function propertyLabel(Asset $asset)
+    {
+        $assetUrl = url('/assets/' . $asset->id);
+
+        $qrCode = QrCode::format('svg')
+            ->size(500)
+            ->margin(1)
+            ->errorCorrection('H')
+            ->generate($assetUrl);
+
+        return response($qrCode)
+            ->header('Content-Type', 'image/svg+xml');
+    } */
     public function destroy(Asset $asset)
     {
         $asset->delete();
 
         return response()->json([
             'message' => 'Asset deleted successfully.',
+        ]);
+    }
+
+    public function nextNumber()
+    {
+        $year = now()->year;
+
+        $lastAsset = Asset::where('asset_tag', 'like', "ICT-{$year}-%")
+            ->orderByDesc('id')
+            ->first();
+
+        if (!$lastAsset) {
+            $nextNumber = 1;
+        } else {
+            $lastNumber = (int) substr($lastAsset->asset_tag, -4);
+            $nextNumber = $lastNumber + 1;
+        }
+
+        return response()->json([
+            'next_number' => $nextNumber,
+            'asset_tag' => sprintf(
+                'ICT-%d-%04d',
+                $year,
+                $nextNumber
+            ),
         ]);
     }
 }
