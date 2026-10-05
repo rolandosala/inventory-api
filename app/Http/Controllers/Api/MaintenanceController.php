@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Asset;
 use App\Models\MaintenanceRecord;
 use Illuminate\Http\Request;
 
@@ -17,7 +18,7 @@ class MaintenanceController extends Controller
         return response()->json($maintenance);
     }
 
-    public function store(Request $request)
+    public function store(Request $request, Asset $asset)
     {
         $validated = $request->validate([
             'asset_id' => 'required|exists:assets,id',
@@ -31,9 +32,12 @@ class MaintenanceController extends Controller
             'cost' => 'nullable|numeric|min:0',
             'status' => 'required|string|max:50',
             'remarks' => 'nullable|string',
+            'asset_status' => 'string',
         ]);
 
         $maintenance = MaintenanceRecord::create($validated);
+        $asset = Asset::findOrFail($validated['asset_id']);
+        $asset->update(['status' => 'under_maintenance']);
 
         $maintenance->load('asset');
 
@@ -52,13 +56,11 @@ class MaintenanceController extends Controller
         ]);
     }
 
-    public function update(
-        Request $request,
-        MaintenanceRecord $maintenance
-    ) {
+    public function update(Request $request, MaintenanceRecord $maintenance)
+    {
         $validated = $request->validate([
             'asset_id' => 'required|exists:assets,id',
-            'technician_id' => 'required|exists:technician_id,id',
+            'technician_id' => 'nullable|string',
             'maintenance_type' => 'required|string|max:255',
             'date_reported' => 'nullable|string',
             'date_started' => 'nullable|string',
@@ -70,6 +72,13 @@ class MaintenanceController extends Controller
             'remarks' => 'nullable|string',
         ]);
 
+
+        $asset = Asset::findOrFail($validated['asset_id']);
+        if ($validated['status'] == 'completed') {
+            $asset->update(['status' => 'available']);
+        } else if ($validated['status'] == 'in_progress') {
+            $asset->update(['status' => 'under_maintenance']);
+        }
         $maintenance->update($validated);
 
         $maintenance->load('asset');

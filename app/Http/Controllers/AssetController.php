@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Asset;
+use App\Models\Software;
 use Illuminate\Http\Request;
 
 class AssetController extends Controller
@@ -85,5 +86,46 @@ class AssetController extends Controller
         return redirect()
             ->route('assets.index')
             ->with('success', 'Asset deleted successfully.');
+    }
+    public function software(Asset $asset)
+    {
+        $asset->load('software');
+
+        return response()->json([
+            'data' => $asset->software,
+        ]);
+    }
+
+    public function attachSoftware(Request $request, Asset $asset)
+    {
+        $validated = $request->validate([
+            'software_id' => 'required|exists:software,id',
+            'installed_at' => 'nullable|date',
+            'license_key' => 'nullable|string',
+            'status' => 'nullable|string|max:50',
+            'remarks' => 'nullable|string',
+        ]);
+
+        $asset->software()->syncWithoutDetaching([
+            $validated['software_id'] => [
+                'installed_at' => $validated['installed_at'] ?? null,
+                'license_key' => $validated['license_key'] ?? null,
+                'status' => $validated['status'] ?? 'installed',
+                'remarks' => $validated['remarks'] ?? null,
+            ],
+        ]);
+
+        return response()->json([
+            'message' => 'Software attached successfully.',
+            'data' => $asset->load('software'),
+        ]);
+    }
+    public function detachSoftware(Asset $asset, Software $software)
+    {
+        $asset->software()->detach($software->id);
+
+        return response()->json([
+            'message' => 'Software detached successfully.',
+        ]);
     }
 }

@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+
 class Asset extends Model
 {
     use SoftDeletes;
@@ -107,5 +108,17 @@ class Asset extends Model
     public function transactions(): HasMany
     {
         return $this->hasMany(InventoryTransaction::class);
+    }
+    public function software()
+    {
+        return $this->belongsToMany(
+            Software::class,
+            'asset_software'
+        )->withPivot([
+                    'installed_at',
+                    'license_key',
+                    'status',
+                    'remarks',
+                ])->withTimestamps();
     }
 }

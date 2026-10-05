@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\DepartmentController;
 use App\Http\Controllers\Api\MaintenanceController;
 use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\DashboardCategoriesController;
+use App\Http\Controllers\SoftwareController;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 /* Route::apiResource('assets', AssetController::class); */
@@ -69,8 +70,14 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::apiResource('users', UserController::class);
     Route::apiResource('maintenance', MaintenanceController::class);
+    Route::get('/maintenance/{maintenance:asset_id}', [MaintenanceController::class, 'show']);
+    Route::put('/maintenance/{maintenance:asset_id}', [MaintenanceController::class, 'update']);
     Route::apiResource('categories', CategoryController::class);
     Route::get('category-counts', [DashboardCategoriesController::class, 'categoryCounts']);
+    Route::get('software', [SoftwareController::class, 'index']);
+    Route::apiResource('software', SoftwareController::class);
+    Route::get('/bycategory', [SoftwareController::class, 'byCategory']);
+    Route::get('/bysecurity', [SoftwareController::class, 'bySecurity']);
 
     Route::get('/test-qr', function () {
         $qrCode = QrCode::format('svg')
@@ -82,7 +89,7 @@ Route::middleware('auth:sanctum')->group(function () {
         return response($qrCode)
             ->header('Content-Type', 'image/svg+xml');
     });
-    
+
 
 });
 
