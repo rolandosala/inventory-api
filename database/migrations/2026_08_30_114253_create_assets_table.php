@@ -56,7 +56,8 @@ return new class extends Migration {
                 'under_maintenance',
                 'lost',
                 'disposed',
-                'retired'
+                'return to supply',
+                'for checking'
             ])->default('available');
 
             $table->enum('condition', [
