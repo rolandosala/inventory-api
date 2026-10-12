@@ -64,6 +64,7 @@ class AssetController extends Controller
             'condition' => 'nullable|in:new,good,fair,poor,damaged,unserviceable',
 
             'remarks' => 'nullable|string',
+            'specifications' => 'nullable|string'
         ]);
 
         $asset = Asset::create($validated);

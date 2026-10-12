@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\AssetController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\DepartmentController;
+use App\Http\Controllers\Api\LocationController;
 use App\Http\Controllers\Api\MaintenanceController;
 use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\DashboardCategoriesController;
@@ -67,6 +68,7 @@ Route::middleware('auth:sanctum')->group(function () {
         ->middleware('permission:users.delete');
 
     Route::apiResource('departments', DepartmentController::class);
+    Route::apiResource('locations', LocationController::class);
 
     Route::apiResource('users', UserController::class);
     Route::apiResource('maintenance', MaintenanceController::class);
