@@ -15,13 +15,14 @@ use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 /* Route::apiResource('assets', AssetController::class); */
 Route::post('/login', [AuthController::class, 'login']);
+Route::apiResource('assets', AssetController::class);
+// View assets
+Route::get('/assets', [AssetController::class, 'index']);
+    /* ->middleware('permission:assets.view'); */
+Route::put('/assets/{asset}', [AssetController::class, 'update']);
+        /* ->middleware('permission:assets.update'); */
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/assets/next-number', [AssetController::class, 'nextNumber']);
-    Route::apiResource('assets', AssetController::class);
-
-    // View assets
-    Route::get('/assets', [AssetController::class, 'index'])
-        ->middleware('permission:assets.view');
 
     // Create asset
     Route::post('/assets', [AssetController::class, 'store'])
@@ -32,8 +33,7 @@ Route::middleware('auth:sanctum')->group(function () {
         ->middleware('permission:assets.view');
 
     // Update asset
-    Route::put('/assets/{asset}', [AssetController::class, 'update'])
-        ->middleware('permission:assets.update');
+    
 
     // Delete asset
     Route::delete('/assets/{asset}', [AssetController::class, 'destroy'])
