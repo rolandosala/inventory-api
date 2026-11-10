@@ -121,4 +121,13 @@ class Asset extends Model
                     'remarks',
                 ])->withTimestamps();
     }
+    public function asset_software()
+    {
+        return $this->belongsToMany(
+            Software::class,
+            'asset_software',
+            'asset_id',
+            'software_id'
+        );
+    }
 }

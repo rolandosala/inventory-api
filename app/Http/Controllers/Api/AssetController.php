@@ -85,6 +85,7 @@ class AssetController extends Controller
             'assignments',
             'maintenanceRecords',
             'transactions',
+            'asset_software'
         ]);
 
         return response()->json([
